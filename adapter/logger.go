@@ -106,11 +106,19 @@ func (l *StdLogger) buildContext(level string, fields ...Field) string {
 	ctx := make([]string, 0, len(fields)+l.fLen+1)
 	ctx = append(ctx, "level="+level)
 	l.fields.Range(func(key, value any) bool {
-		ctx = append(ctx, fmt.Sprintf("%s=%v", key, value))
+		if err, ok := value.(error); ok {
+			ctx = append(ctx, fmt.Sprintf("%s=%s", key, err.Error()))
+		} else {
+			ctx = append(ctx, fmt.Sprintf("%s=%v", key, value))
+		}
 		return true
 	})
 	for _, f := range fields {
-		ctx = append(ctx, fmt.Sprintf("%s=%v", f.Key, f.Value))
+		if err, ok := f.Value.(error); ok {
+			ctx = append(ctx, fmt.Sprintf("%s=%s", f.Key, err.Error()))
+		} else {
+			ctx = append(ctx, fmt.Sprintf("%s=%v", f.Key, f.Value))
+		}
 	}
 
 	return strings.Join(ctx, " ")
